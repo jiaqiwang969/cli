@@ -32,6 +32,9 @@ brew install entireio/tap/entire
 # Or install via Go
 go install github.com/entireio/cli/cmd/entire@latest
 
+# Or run directly via npx (npm wrapper)
+npx @entireio/cli@latest status
+
 # Enable in your project
 cd your-project && entire enable
 
@@ -382,6 +385,20 @@ mise run lint
 # Format the code
 mise run fmt
 ```
+
+### NPM Wrapper (Optional)
+
+The npm wrapper lives in `npm/entire-cli` and provides `npx @entireio/cli`.
+
+```bash
+# Run wrapper unit tests
+cd npm/entire-cli && npm test
+
+# Smoke-test wrapper locally
+cd npm/entire-cli && npm pack
+```
+
+On tagged releases (`v*`), GitHub Actions publishes `@entireio/cli` automatically when `NPM_TOKEN` is configured.
 
 ## Getting Help
 

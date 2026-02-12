@@ -1,0 +1,32 @@
+{
+  "name": "@entireio/cli",
+  "version": "0.0.0-dev",
+  "description": "npx wrapper for the Entire CLI binary",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://github.com/entireio/cli#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/entireio/cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/entireio/cli/issues"
+  },
+  "bin": {
+    "entire": "./bin/entire.js"
+  },
+  "files": [
+    "bin/entire.js",
+    "scripts/postinstall.mjs",
+    "scripts/install-lib.mjs",
+    "README.md"
+  ],
+  "scripts": {
+    "postinstall": "node ./scripts/postinstall.mjs",
+    "test": "node --test ./tests/*.test.mjs"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ]
+}
