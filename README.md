@@ -55,7 +55,7 @@ This installs agent and git hooks to work with your AI agent (Claude Code, Codex
 
 ### 2. Work with Your AI Agent
 
-Just use Claude Code or Gemini CLI normally. Entire runs in the background, tracking your session:
+Just use your configured agent (Claude Code, Codex CLI, or Gemini CLI) normally. Entire runs in the background, tracking your session:
 
 ```
 entire status  # Check current session status anytime
@@ -254,6 +254,18 @@ When enabled, Entire automatically generates AI summaries for checkpoints at com
 
 Local settings override project settings field-by-field. When you run `entire status`, it shows both project and local (effective) settings.
 
+### Codex CLI
+
+Entire supports [Codex CLI](https://github.com/openai/codex) via its `notify` hook.
+
+To enable:
+
+```bash
+entire enable --agent codex
+```
+
+When enabled, Entire installs `entire hooks codex notify` into `~/.codex/config.toml`.
+
 ### Gemini CLI (Preview)
 
 Gemini CLI support is currently in preview. Entire can work with [Gemini CLI](https://github.com/google-gemini/gemini-cli) as an alternative to Claude Code, or alongside it — you can have both agents' hooks enabled at the same time.
@@ -276,7 +288,7 @@ If you run into any issues with Gemini CLI integration, please [open an issue](h
 |--------------------------|-------------------------------------------------------------------------------------------|
 | "Not a git repository"   | Navigate to a Git repository first                                                        |
 | "Entire is disabled"     | Run `entire enable`                                                                       |
-| "No rewind points found" | Work with Claude Code and commit (manual-commit) or wait for agent response (auto-commit) |
+| "No rewind points found" | Work with your configured agent and commit (manual-commit) or wait for agent response (auto-commit) |
 | "shadow branch conflict" | Run `entire reset --force`                                                                |
 
 ### SSH Authentication Errors
