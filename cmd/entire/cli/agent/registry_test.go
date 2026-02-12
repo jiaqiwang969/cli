@@ -135,6 +135,9 @@ func TestAgentNameConstants(t *testing.T) {
 	if AgentNameClaudeCode != "claude-code" {
 		t.Errorf("expected AgentNameClaudeCode %q, got %q", "claude-code", AgentNameClaudeCode)
 	}
+	if AgentNameCodex != "codex" {
+		t.Errorf("expected AgentNameCodex %q, got %q", "codex", AgentNameCodex)
+	}
 	if AgentNameGemini != "gemini" {
 		t.Errorf("expected AgentNameGemini %q, got %q", "gemini", AgentNameGemini)
 	}

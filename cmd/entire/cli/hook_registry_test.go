@@ -279,6 +279,28 @@ func TestGeminiCLIHooksCmd_HasLoggingHooks(t *testing.T) {
 	}
 }
 
+func TestCodexHooksCmd_HasLoggingHooks(t *testing.T) {
+	hooksCmd := newHooksCmd()
+
+	var codexCmd *cobra.Command
+	for _, sub := range hooksCmd.Commands() {
+		if sub.Use == "codex" {
+			codexCmd = sub
+			break
+		}
+	}
+
+	if codexCmd == nil {
+		t.Fatal("expected to find codex subcommand under hooks")
+	}
+	if codexCmd.PersistentPreRunE == nil {
+		t.Error("expected PersistentPreRunE to be set for logging initialization")
+	}
+	if codexCmd.PersistentPostRunE == nil {
+		t.Error("expected PersistentPostRunE to be set for logging cleanup")
+	}
+}
+
 func TestHookCommand_SetsCurrentHookAgentName(t *testing.T) {
 	// Verify that newAgentHookVerbCmdWithLogging sets currentHookAgentName
 	// correctly for the handler, and clears it after
@@ -297,6 +319,7 @@ func TestHookCommand_SetsCurrentHookAgentName(t *testing.T) {
 		agentName agent.AgentName
 	}{
 		{"claude-code hook sets claude-code", agent.AgentNameClaudeCode},
+		{"codex hook sets codex", agent.AgentNameCodex},
 		{"gemini hook sets gemini", agent.AgentNameGemini},
 	}
 

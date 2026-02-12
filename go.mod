@@ -7,6 +7,7 @@ require (
 	github.com/creack/pty v1.1.24
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/go-git/go-git/v5 v5.16.4
+	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/posthog/posthog-go v1.10.0
 	github.com/sergi/go-diff v1.4.0
 	github.com/spf13/cobra v1.10.2

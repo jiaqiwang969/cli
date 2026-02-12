@@ -112,7 +112,7 @@ Strategies: manual-commit (default), auto-commit`,
 	cmd.Flags().MarkHidden("ignore-untracked") //nolint:errcheck,gosec // flag is defined above
 	cmd.Flags().BoolVar(&useLocalSettings, "local", false, "Write settings to settings.local.json instead of settings.json")
 	cmd.Flags().BoolVar(&useProjectSettings, "project", false, "Write settings to settings.json even if it already exists")
-	cmd.Flags().StringVar(&agentName, "agent", "", "Agent to setup hooks for (e.g., claude-code). Enables non-interactive mode.")
+	cmd.Flags().StringVar(&agentName, "agent", "", "Agent to setup hooks for (e.g., claude-code, codex, gemini). Enables non-interactive mode.")
 	cmd.Flags().StringVar(&strategyFlag, "strategy", "", "Strategy to use (manual-commit or auto-commit)")
 	cmd.Flags().BoolVarP(&forceHooks, "force", "f", false, "Force reinstall hooks (removes existing Entire hooks first)")
 	cmd.Flags().BoolVar(&skipPushSessions, "skip-push-sessions", false, "Disable automatic pushing of session logs on git push")
@@ -922,12 +922,13 @@ func runUninstall(w, errW io.Writer, force bool) error {
 	shadowBranchCount := countShadowBranches()
 	gitHooksInstalled := strategy.IsGitHookInstalled()
 	claudeHooksInstalled := checkClaudeCodeHooksInstalled()
+	codexHooksInstalled := checkCodexHooksInstalled()
 	geminiHooksInstalled := checkGeminiCLIHooksInstalled()
 	entireDirExists := checkEntireDirExists()
 
 	// Check if there's anything to uninstall
 	if !entireDirExists && !gitHooksInstalled && sessionStateCount == 0 &&
-		shadowBranchCount == 0 && !claudeHooksInstalled && !geminiHooksInstalled {
+		shadowBranchCount == 0 && !claudeHooksInstalled && !codexHooksInstalled && !geminiHooksInstalled {
 		fmt.Fprintln(w, "Entire is not installed in this repository.")
 		return nil
 	}
@@ -947,13 +948,9 @@ func runUninstall(w, errW io.Writer, force bool) error {
 		if shadowBranchCount > 0 {
 			fmt.Fprintf(w, "  - Shadow branches (%d)\n", shadowBranchCount)
 		}
-		switch {
-		case claudeHooksInstalled && geminiHooksInstalled:
-			fmt.Fprintln(w, "  - Agent hooks (Claude Code, Gemini CLI)")
-		case claudeHooksInstalled:
-			fmt.Fprintln(w, "  - Agent hooks (Claude Code)")
-		case geminiHooksInstalled:
-			fmt.Fprintln(w, "  - Agent hooks (Gemini CLI)")
+		installedAgents := installedAgentHookDisplayNames()
+		if len(installedAgents) > 0 {
+			fmt.Fprintf(w, "  - Agent hooks (%s)\n", strings.Join(installedAgents, ", "))
 		}
 		fmt.Fprintln(w)
 
@@ -1068,6 +1065,19 @@ func checkGeminiCLIHooksInstalled() bool {
 	return hookAgent.AreHooksInstalled()
 }
 
+// checkCodexHooksInstalled checks if Codex hooks are installed.
+func checkCodexHooksInstalled() bool {
+	ag, err := agent.Get(agent.AgentNameCodex)
+	if err != nil {
+		return false
+	}
+	hookAgent, ok := ag.(agent.HookSupport)
+	if !ok {
+		return false
+	}
+	return hookAgent.AreHooksInstalled()
+}
+
 // checkEntireDirExists checks if the .entire directory exists.
 func checkEntireDirExists() bool {
 	entireDirAbs, err := paths.AbsPath(paths.EntireDir)
@@ -1108,7 +1118,34 @@ func removeAgentHooks(w io.Writer) error {
 		}
 	}
 
+	// Remove Codex hooks
+	codexAgent, err := agent.Get(agent.AgentNameCodex)
+	if err == nil {
+		if hookAgent, ok := codexAgent.(agent.HookSupport); ok {
+			wasInstalled := hookAgent.AreHooksInstalled()
+			if err := hookAgent.UninstallHooks(); err != nil {
+				errs = append(errs, err)
+			} else if wasInstalled {
+				fmt.Fprintln(w, "  Removed Codex hooks")
+			}
+		}
+	}
+
 	return errors.Join(errs...)
+}
+
+func installedAgentHookDisplayNames() []string {
+	installedAgents := GetAgentsWithHooksInstalled()
+	names := make([]string, 0, len(installedAgents))
+	for _, agentName := range installedAgents {
+		ag, err := agent.Get(agentName)
+		if err != nil {
+			names = append(names, string(agentName))
+			continue
+		}
+		names = append(names, string(ag.Type()))
+	}
+	return names
 }
 
 // removeAllSessionStates removes all session state files and the directory.

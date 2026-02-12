@@ -20,7 +20,7 @@ Entire hooks into your git workflow to capture AI agent sessions on every push. 
 
 - Git
 - macOS or Linux (Windows via WSL)
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [Gemini CLI](https://github.com/google-gemini/gemini-cli) installed and authenticated
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Codex CLI](https://github.com/openai/codex), or [Gemini CLI](https://github.com/google-gemini/gemini-cli) installed and authenticated
 
 ## Quick Start
 
@@ -47,7 +47,7 @@ entire status
 entire enable
 ```
 
-This installs agent and git hooks to work with your AI agent (Claude Code or Gemini CLI). The hooks capture session data at specific points in your workflow. Your code commits stay clean—all session metadata is stored on a separate `entire/checkpoints/v1` branch.
+This installs agent and git hooks to work with your AI agent (Claude Code, Codex CLI, or Gemini CLI). The hooks capture session data at specific points in your workflow. Your code commits stay clean—all session metadata is stored on a separate `entire/checkpoints/v1` branch.
 
 **When checkpoints are created** depends on your chosen strategy (default is `manual-commit`):
 - **Manual-commit**: Checkpoints are created when you or the agent make a git commit
@@ -171,7 +171,7 @@ Multiple AI sessions can run on the same commit. If you start a second session w
 
 | Flag                   | Description                                                        |
 |------------------------|--------------------------------------------------------------------|
-| `--agent <name>`       | AI agent to setup hooks for: `claude-code` (default) or `gemini`   |
+| `--agent <name>`       | AI agent to setup hooks for: `claude-code` (default), `codex`, or `gemini` |
 | `--force`, `-f`        | Force reinstall hooks (removes existing Entire hooks first)        |
 | `--local`              | Write settings to `settings.local.json` instead of `settings.json` |
 | `--project`            | Write settings to `settings.json` even if it already exists        |
