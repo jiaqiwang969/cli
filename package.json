@@ -1,0 +1,19 @@
+{
+  "name": "entire-github-wrapper",
+  "version": "0.0.0-dev",
+  "private": true,
+  "description": "GitHub npx wrapper for Entire CLI",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "entire": "./npm/entire-cli/bin/entire.js"
+  },
+  "scripts": {
+    "postinstall": "node ./npm/entire-cli/scripts/postinstall.mjs",
+    "test:npx-wrapper": "node --test ./npm/entire-cli/tests/*.test.mjs"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ]
+}

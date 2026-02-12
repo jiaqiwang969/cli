@@ -32,8 +32,8 @@ brew install entireio/tap/entire
 # Or install via Go
 go install github.com/entireio/cli/cmd/entire@latest
 
-# Or run directly via npx (npm wrapper)
-npx @entireio/cli@latest status
+# Or run directly via GitHub npx wrapper
+npx -y github:entireio/cli#main status
 
 # Enable in your project
 cd your-project && entire enable
@@ -269,6 +269,12 @@ entire enable --agent codex
 
 When enabled, Entire installs `entire hooks codex notify` into `~/.codex/config.toml`.
 
+For a no-install workflow, you can also run hooks via GitHub npx:
+
+```bash
+npx -y github:entireio/cli#main hooks codex notify
+```
+
 ### Gemini CLI (Preview)
 
 Gemini CLI support is currently in preview. Entire can work with [Gemini CLI](https://github.com/google-gemini/gemini-cli) as an alternative to Claude Code, or alongside it — you can have both agents' hooks enabled at the same time.
@@ -386,9 +392,9 @@ mise run lint
 mise run fmt
 ```
 
-### NPM Wrapper (Optional)
+### GitHub npx Wrapper (Optional)
 
-The npm wrapper lives in `npm/entire-cli` and provides `npx @entireio/cli`.
+The wrapper lives in `npm/entire-cli` and provides `npx -y github:entireio/cli#main`.
 
 ```bash
 # Run wrapper unit tests
@@ -397,8 +403,6 @@ cd npm/entire-cli && npm test
 # Smoke-test wrapper locally
 cd npm/entire-cli && npm pack
 ```
-
-On tagged releases (`v*`), GitHub Actions publishes `@entireio/cli` automatically when `NPM_TOKEN` is configured.
 
 ## Getting Help
 
