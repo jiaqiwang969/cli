@@ -25,6 +25,8 @@ import (
 func setupTestDir(t *testing.T) string {
 	t.Helper()
 	tmpDir := t.TempDir()
+	// Ensure tests do not read or mutate real user state (for example, ~/.codex hooks).
+	t.Setenv("HOME", tmpDir)
 	t.Chdir(tmpDir)
 	paths.ClearRepoRootCache()
 	return tmpDir

@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"log/slog"
+	"os"
 	"time"
 
 	"github.com/entireio/cli/cmd/entire/cli/logging"
@@ -63,8 +64,22 @@ func initHookLogging() func() {
 	// Set up log level getter so logging can read from settings
 	logging.SetLogLevelGetter(GetLogLevel)
 
-	// Read session ID for the slog attribute (empty string is fine - log file is fixed)
+	// Read session ID for the slog attribute.
+	//
+	// For Codex hooks, prefer the thread ID from the environment because it's always present
+	// and avoids stale/incorrect session attribution when multiple sessions are active.
 	sessionID := strategy.FindMostRecentSession()
+	if os.Getenv("CODEX_HOOK_EVENT") != "" {
+		if threadID := os.Getenv("CODEX_HOOK_THREAD_ID"); threadID != "" {
+			sessionID = threadID
+		}
+		if err := logging.InitCodexHooks(sessionID); err != nil {
+			// Init failed - logging will use stderr fallback
+			return func() {}
+		}
+		return logging.Close
+	}
+
 	if err := logging.Init(sessionID); err != nil {
 		// Init failed - logging will use stderr fallback
 		return func() {}

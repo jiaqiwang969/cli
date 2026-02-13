@@ -2,7 +2,12 @@
 
 ## Overview
 
-The CLI uses Go's `log/slog` package for structured JSON logging. All logs are written to a single file `.entire/logs/entire.log` and help debug hook execution and CLI behavior. When a session ID is known, the `session_id` attribute on each log line allows filtering by session.
+The CLI uses Go's `log/slog` package for structured JSON logging. Logs are written as JSONL and help debug hook execution and CLI behavior. When a session ID is known, the `session_id` attribute on each log line allows filtering by session.
+
+## Log Locations
+
+- Repo-native Entire logs (default): `.entire/logs/entire.log`
+- Codex hook logs (when invoked by Codex via `notify`): `$CODEX_HOME/hooks/entire/logs/entire.log` (defaults to `~/.codex/hooks/entire/logs/entire.log` when `CODEX_HOME` is unset)
 
 ## Log Levels
 
@@ -63,6 +68,12 @@ jq 'select(.hook_type == "subagent")' .entire/logs/entire.log
 
 # Tail logs in real time
 tail -f .entire/logs/entire.log | jq .
+```
+
+For Codex hooks, use the Codex log location instead:
+
+```bash
+tail -f "${CODEX_HOME:-$HOME/.codex}/hooks/entire/logs/entire.log" | jq .
 ```
 
 ## Current Gaps

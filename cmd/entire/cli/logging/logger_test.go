@@ -26,6 +26,10 @@ func testLogFilePath(tmpDir string) string {
 	return filepath.Join(tmpDir, ".entire", "logs", "entire.log")
 }
 
+func testCodexHooksLogFilePath(codexHome string) string {
+	return filepath.Join(codexHome, CodexHooksLogsDir, "entire.log")
+}
+
 func TestParseLogLevel(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -52,6 +56,34 @@ func TestParseLogLevel(t *testing.T) {
 				t.Errorf("parseLogLevel(%q) = %v, want %v", tt.envValue, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestInitCodexHooks_CreatesLogFile(t *testing.T) {
+	codexHome := t.TempDir()
+	t.Setenv("CODEX_HOME", codexHome)
+
+	sessionID := "2025-01-15-codex-hooks-test"
+	err := InitCodexHooks(sessionID)
+	if err != nil {
+		t.Fatalf("InitCodexHooks() error = %v", err)
+	}
+
+	Info(context.Background(), "test message", slog.String("key", "value"))
+	Close()
+
+	logFile := testCodexHooksLogFilePath(codexHome)
+	content, err := os.ReadFile(logFile)
+	if err != nil {
+		t.Fatalf("Failed to read log file: %v", err)
+	}
+
+	var logEntry map[string]interface{}
+	if err := json.Unmarshal(content, &logEntry); err != nil {
+		t.Fatalf("Log output is not valid JSON: %v\nContent: %s", err, content)
+	}
+	if logEntry["session_id"] != sessionID {
+		t.Errorf("Expected session_id=%q, got %v", sessionID, logEntry["session_id"])
 	}
 }
 

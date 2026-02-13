@@ -41,6 +41,10 @@ const LogLevelEnvVar = "ENTIRE_LOG_LEVEL"
 // LogsDir is the directory where log files are stored (relative to repo root).
 const LogsDir = ".entire/logs"
 
+// CodexHooksLogsDir is the directory where log files are stored for Codex hooks
+// (relative to Codex home).
+const CodexHooksLogsDir = "hooks/entire/logs"
+
 var (
 	// logger is the package-level logger instance
 	logger *slog.Logger
@@ -118,6 +122,74 @@ func Init(sessionID string) error {
 	}
 
 	logsPath := filepath.Join(repoRoot, LogsDir)
+	if err := os.MkdirAll(logsPath, 0o750); err != nil {
+		// Fall back to stderr
+		logger = createLogger(os.Stderr, level)
+		return nil
+	}
+
+	logFilePath := filepath.Join(logsPath, "entire.log")
+	f, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600) //nolint:gosec // fixed filename, not user-controlled
+	if err != nil {
+		// Fall back to stderr
+		logger = createLogger(os.Stderr, level)
+		return nil
+	}
+
+	logFile = f
+	logBufWriter = bufio.NewWriterSize(f, 8192) // 8KB buffer for batched writes
+	logger = createLogger(logBufWriter, level)
+	currentSessionID = sessionID
+
+	return nil
+}
+
+// InitCodexHooks initializes the logger for Codex hook invocations, writing JSON logs to
+// $CODEX_HOME/hooks/entire/logs/entire.log (defaulting to ~/.codex when CODEX_HOME is unset).
+//
+// This is used to keep Codex hook observability co-located with Codex state (sessions, state DB, etc),
+// while leaving repo-local logs for repo-native Entire workflows.
+func InitCodexHooks(sessionID string) error {
+	// Validate session ID if provided (used only for the slog attribute, not the filename)
+	if sessionID != "" {
+		if err := validation.ValidateSessionID(sessionID); err != nil {
+			return fmt.Errorf("invalid session ID for logging: %w", err)
+		}
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	// Close any existing log file (flush buffer first)
+	if logBufWriter != nil {
+		_ = logBufWriter.Flush()
+		logBufWriter = nil
+	}
+	if logFile != nil {
+		_ = logFile.Close()
+		logFile = nil
+	}
+
+	// Get log level from environment first, then settings
+	levelStr := os.Getenv(LogLevelEnvVar)
+	if levelStr == "" && logLevelGetter != nil {
+		levelStr = logLevelGetter()
+	}
+	level := parseLogLevel(levelStr)
+
+	// Warn if invalid level was provided
+	if levelStr != "" && !isValidLogLevel(levelStr) {
+		fmt.Fprintf(os.Stderr, "[entire] Warning: invalid log level %q, defaulting to INFO\n", levelStr)
+	}
+
+	codexHome, err := paths.CodexHome()
+	if err != nil {
+		// Fall back to stderr
+		logger = createLogger(os.Stderr, level)
+		return nil
+	}
+
+	logsPath := filepath.Join(codexHome, CodexHooksLogsDir)
 	if err := os.MkdirAll(logsPath, 0o750); err != nil {
 		// Fall back to stderr
 		logger = createLogger(os.Stderr, level)
